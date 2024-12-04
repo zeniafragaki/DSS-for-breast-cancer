@@ -17,3 +17,10 @@ Performance Metrics: The system evaluates model performance using accuracy, conf
 
 
 Visualization: Graphs and heatmaps are provided to visualize model performance and confusion matrices for better interpretability.
+
+
+Citation
+
+
+If you use any part of this project in your work, kindly reference it using the following citation:
+Fragaki, Z. (2024). An Evaluation of Machine Learning Classifiers for Discrimination of Benign from Malignant Breast Cancer Cases. GitHub. Available at: https://github.com/zeniafragaki/Breast-cancer-discrimination-benign-malignant
