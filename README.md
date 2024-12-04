@@ -1,5 +1,5 @@
 # DSS-for-breast-cancer
 
-@ΣΥΑ εργασία
+Part of university project for decision supporting systens lesson.
 
-DSS for discrimination of benign from malignant cases
+DSS for discrimination of benign from malignant cases.
