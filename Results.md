@@ -5,7 +5,7 @@ From these results, we observe that SVM appears to be the most balanced model, o
 ![image](https://github.com/user-attachments/assets/dfa29305-1eec-41ac-bf14-6c9b117970d3)
 
 
-# Confusion Matrix
+# Confusion Matrices
 
 ![image](https://github.com/user-attachments/assets/c7a9e6ec-90cf-4c14-bbbe-c2de988c4345)
 
