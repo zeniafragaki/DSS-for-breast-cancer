@@ -1,1 +1,8 @@
+# Data Source
+
 All medical data (images) was provided from archive of MEDISP LAB , Biomedical Engineering Department at University of West Attica.
+
+# Data Processing
+
+The MRI The images undergo automatic segmentation using thresholding and morphological operations to isolate relevant features. The segmented images are then combined into 1D feature vectors, which are stored alongside their respective tumor labels (e.g., "Benign" or "Cancer").
+The features are normalized using a standard scaler to ensure consistency in the data for machine learning models. The dataset is split into training and test sets, allowing for model training and evaluation. Several machine learning models, including Random Forest, SVM, KNN, Logistic Regression, and Decision Trees, are trained and evaluated through cross-validation. Model performance is assessed using accuracy scores, classification reports, and confusion matrices.
