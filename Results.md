@@ -27,5 +27,19 @@ Fig.3: Confusion Matric for KNN
 Fig.4: Confusion Matrix for Logistic Regression
 
 
+#Discussion
+
+The results suggest that SVM performs the best in classifying MRI images as benign or malignant in this dataset. The performance of the machine learning models in this study was significantly influenced by the limited dataset size, comprising only 40 MRI images per time point (T1 and T2). This small dataset poses challenges in building robust models capable of generalizing to unseen data. Machine learning models typically require larger datasets to capture meaningful patterns while avoiding overfitting.
+
+
+#Conclusion
+
+
+In conclusion, the project demonstrates the potential of machine learning techniques in classifying medical images for benign and malignant detection. The SVM model showed the highest accuracy, but more research is needed to further enhance the system's robustness. Future work will and the integration of more advanced machine learning algorithms.
+
+
+
+
+
 
 
