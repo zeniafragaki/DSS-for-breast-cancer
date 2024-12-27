@@ -31,7 +31,7 @@ Support Vector Machines (SVM)
 
 Logistic Regression
 
-and Decision Trees.
+Decision Trees
 
 
 
