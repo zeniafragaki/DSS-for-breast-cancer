@@ -3,6 +3,16 @@ import numpy as np
 import pandas as pd
 import tifffile as tiff
 import cv2
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
 
 # Διαδρομές φακέλων εικόνων T1 και T2
 t1_path = r"C:\Users\zenia\OneDrive\Υπολογιστής\8ο_9o εξ\Συστηματα Υπ. Αποφ. Εργασια\T1 time point"
@@ -43,6 +53,9 @@ def perform_segmentation(image):
     cleaned_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
 
     return cleaned_mask
+
+# Flag to print one segmented image
+printed_segmented_image = False
 
 for id_, label in zip(ids, labels):
     # Δημιουργία διαδρομών εικόνας
@@ -88,6 +101,18 @@ for id_, label in zip(ids, labels):
         X.append(combined_image)
         y.append(label)
 
+        # Print one segmented image
+        if not printed_segmented_image:
+            plt.figure(figsize=(10, 5))
+            plt.subplot(1, 2, 1)
+            plt.title("T1 Segmented Image")
+            plt.imshow(t1_segmented, cmap='gray')
+            plt.subplot(1, 2, 2)
+            plt.title("T2 Segmented Image")
+            plt.imshow(t2_segmented, cmap='gray')
+            plt.show()
+            printed_segmented_image = True
+
     except Exception as e:
         print(f"Σφάλμα κατά την επεξεργασία εικόνων για το ID {id_}: {e}")
 
@@ -100,18 +125,6 @@ print(f"Σχήμα χαρακτηριστικών (X): {X.shape}")
 print(f"Σχήμα ετικετών (y): {y.shape}")
 
 # Κανονικοποίηση χαρακτηριστικών και εκπαίδευση μοντέλου
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-# Κανονικοποίηση χαρακτηριστικών
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
@@ -199,4 +212,3 @@ for i in range(num_features_to_plot):
 feature_histogram_path = os.path.join(output_dir, "feature_distributions.png")
 plt.savefig(feature_histogram_path)
 plt.show()
-
