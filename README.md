@@ -21,7 +21,17 @@ The features are normalized using a standard scaler to ensure consistency in the
 
 # Model Selection
 
-Multiple machine learning models are evaluated, including K-Nearest Neighbors (KNN), Random Forest, Support Vector Machines (SVM), Logistic Regression, and Decision Trees.
+Multiple machine learning models are evaluated, including : 
+
+K-Nearest Neighbors (KNN)
+
+Random Forest
+
+Support Vector Machines (SVM)
+
+Logistic Regression
+
+and Decision Trees.
 
 
 
