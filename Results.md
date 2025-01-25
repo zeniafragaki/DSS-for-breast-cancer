@@ -32,7 +32,7 @@ Fig.3: Confusion Matric for KNN
 Fig.4: Confusion Matrix for Logistic Regression
 
 
-4. DISCUSSION
+# Discussion
 
 
 As it highlighted before, Random Forest, Logistic Regression, 
@@ -43,7 +43,7 @@ achieved higher cross validation accuracies suggesting they could
 possibly generalize better with further processing and tuning. 
 
 
-6. CONCLUSION
+# Conclusion
 
    
 In conclusion, the project demonstrates the potential of machine 
