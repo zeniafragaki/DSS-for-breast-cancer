@@ -1,5 +1,5 @@
-# author : Zenia Fragaki
-
+# author : @Zenia Fragaki
+# 25/12/2024
 
 import os
 import numpy as np
@@ -16,125 +16,198 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
+from skimage.feature import graycomatrix, graycoprops
+from scipy.stats import kurtosis, skew
+import time
 
-# Διαδρομές φακέλων εικόνων T1 και T2
-t1_path = r"C:\Users\zenia\OneDrive\Υπολογιστής\8ο_9o εξ\Συστηματα Υπ. Αποφ. Εργασια\T1 time point"
-t2_path = r"C:\Users\zenia\OneDrive\Υπολογιστής\8ο_9o εξ\Συστηματα Υπ. Αποφ. Εργασια\T2 time point"
+# paths
+t1_path = r"path to t1"
+t2_path = r"path to t2"
 
-# Φόρτωση του αρχείου Excel
-annotations_path = r"C:\Users\zenia\OneDrive\Υπολογιστής\8ο_9o εξ\Συστηματα Υπ. Αποφ. Εργασια\BREAST ANNOTATIONS.xls"
+# excel load
+annotations_path = r"path to excels"
 annotations = pd.read_excel(annotations_path, header=None)
 
-# Καθαρισμός και ανάγνωση ID και ετικετών
+# filtering and reading Ids and labels
 annotations_cleaned = annotations.dropna()
-ids = annotations_cleaned.iloc[:, 0].astype(int).values  # Πρώτη στήλη: ID
-labels = annotations_cleaned.iloc[:, 1].values          # Δεύτερη στήλη: Ετικέτες (π.χ. "Cancer", "Benign")
+ids = annotations_cleaned.iloc[:, 0].astype(int).values  # ID
+labels = annotations_cleaned.iloc[:, 1].values          # labels (e.g. "Cancer", "Benign")
 
-# Συνδυασμός ID με εικόνες από τους φακέλους
-X = []  # Χαρακτηριστικά
-y = []  # Ετικέτες
+# ids and images
+X = []  # features
+y = []  # labels
 
-# Αποθηκεύει το μέγεθος της πρώτης εικόνας για κανονικοποίηση
+# save size
 first_image_shape = None
 
 def perform_segmentation(image):
     """
     Εκτελεί αυτόματο segmentation χρησιμοποιώντας thresholding και morphological operations.
     """
-    # Μετατροπή σε grayscale (αν δεν είναι ήδη)
+    # grayscale grayscale 
     if len(image.shape) > 2:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    # Κανονικοποίηση της εικόνας
+    # normalize 
     image = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX)
     
     # Thresholding
     _, binary_mask = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    # Morphological operations για καθαρισμό
+    # Morphological operations 
     kernel = np.ones((3, 3), np.uint8)
     cleaned_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
 
     return cleaned_mask
 
-# Flag to print one segmented image
-printed_segmented_image = False
+def extract_first_order_features(image):
+    """
+    Extracts first-order statistical features from the image.
+    """
+    mean = np.mean(image)
+    std = np.std(image)
+    kurt = kurtosis(image, axis=None)
+    skewness = skew(image, axis=None)
+    return [mean, std, kurt, skewness]
+
+def extract_second_order_features(image):
+    """
+    Extracts second-order texture features from the image using GLCM.
+    """
+    glcm = graycomatrix(image, distances=[1], angles=[0], levels=256, symmetric=True, normed=True)
+    contrast = graycoprops(glcm, 'contrast')[0, 0]
+    dissimilarity = graycoprops(glcm, 'dissimilarity')[0, 0]
+    homogeneity = graycoprops(glcm, 'homogeneity')[0, 0]
+    energy = graycoprops(glcm, 'energy')[0, 0]
+    correlation = graycoprops(glcm, 'correlation')[0, 0]
+    return [contrast, dissimilarity, homogeneity, energy, correlation]
+
+# Flags to print one segmented image of each category
+printed_t1_image = False
+printed_t2_image = False
 
 for id_, label in zip(ids, labels):
-    # Δημιουργία διαδρομών εικόνας
+    #paths
     t1_image_path = os.path.join(t1_path, f"ROI_Z1_{id_}.tif")
     t2_image_path = os.path.join(t2_path, f"ROI_Z2_{id_}.tif")
     
-    # Έλεγχος αν οι εικόνες υπάρχουν
+    # if exists
     if not os.path.exists(t1_image_path) or not os.path.exists(t2_image_path):
         print(f"Δεν βρέθηκαν εικόνες για το ID {id_}. Παραλείπεται.")
         continue
 
     try:
-        # Φόρτωση εικόνων
+        # load data 
         t1_image = tiff.imread(t1_image_path)
         t2_image = tiff.imread(t2_image_path)
 
-        # Ελέγχουμε αν οι εικόνες είναι έγχρωμες (3 κανάλια)
+        # color checking
         if len(t1_image.shape) > 2:
             t1_image = t1_image[:, :, 0]
         if len(t2_image.shape) > 2:
             t2_image = t2_image[:, :, 0]
 
-        # Καθορίζουμε το μέγεθος αναφοράς
+        # size 
         if first_image_shape is None:
             first_image_shape = t1_image.shape
 
-        # Προσαρμογή μεγέθους εικόνων στο ίδιο μέγεθος
+        # resizing
         t1_image = cv2.resize(t1_image, (first_image_shape[1], first_image_shape[0]))
         t2_image = cv2.resize(t2_image, (first_image_shape[1], first_image_shape[0]))
 
-        # Εκτέλεση segmentation
+        #  segmentation
         t1_segmented = perform_segmentation(t1_image)
         t2_segmented = perform_segmentation(t2_image)
 
-        # Εφαρμογή μασκών στις εικόνες
+        # mask
         t1_masked = cv2.bitwise_and(t1_image, t1_image, mask=t1_segmented.astype(np.uint8))
         t2_masked = cv2.bitwise_and(t2_image, t2_image, mask=t2_segmented.astype(np.uint8))
 
-        # Συνδυασμός εικόνων σε μονοδιάστατο διάνυσμα
-        combined_image = np.concatenate((t1_masked.flatten(), t2_masked.flatten()))
+        # Extract first-order features
+        t1_first_order_features = extract_first_order_features(t1_masked)
+        t2_first_order_features = extract_first_order_features(t2_masked)
 
-        # Προσθήκη χαρακτηριστικών και ετικέτας
-        X.append(combined_image)
+        # Extract second-order features
+        t1_second_order_features = extract_second_order_features(t1_masked)
+        t2_second_order_features = extract_second_order_features(t2_masked)
+
+        # feaut
+        combined_features = t1_first_order_features + t2_first_order_features + t1_second_order_features + t2_second_order_features
+
+        # labels
+        X.append(combined_features)
         y.append(label)
 
-        # Print one segmented image
-        if not printed_segmented_image:
-            plt.figure(figsize=(10, 5))
-            plt.subplot(1, 2, 1)
-            plt.title("T1 Segmented Image")
+        #segmented image for T1
+        if not printed_t1_image:
+            plt.figure(figsize=(10, 10))
+            plt.subplot(1, 3, 1)
+            plt.title('T1 Original Image')
+            plt.imshow(t1_image, cmap='gray')
+            plt.axis('off')
+
+            plt.subplot(1, 3, 2)
+            plt.title('T1 Mask')
             plt.imshow(t1_segmented, cmap='gray')
-            plt.subplot(1, 2, 2)
-            plt.title("T2 Segmented Image")
-            plt.imshow(t2_segmented, cmap='gray')
+            plt.axis('off')
+
+            plt.subplot(1, 3, 3)
+            plt.title('T1 Masked Image')
+            plt.imshow(t1_masked, cmap='gray')
+            plt.axis('off')
+
             plt.show()
-            printed_segmented_image = True
+            printed_t1_image = True
+
+        # segmented image for T2
+        if not printed_t2_image:
+            plt.figure(figsize=(10, 10))
+            plt.subplot(1, 3, 1)
+            plt.title('T2 Original Image')
+            plt.imshow(t2_image, cmap='gray')
+            plt.axis('off')
+
+            plt.subplot(1, 3, 2)
+            plt.title('T2 Mask')
+            plt.imshow(t2_segmented, cmap='gray')
+            plt.axis('off')
+
+            plt.subplot(1, 3, 3)
+            plt.title('T2 Masked Image')
+            plt.imshow(t2_masked, cmap='gray')
+            plt.axis('off')
+
+            plt.show()
+            printed_t2_image = True
 
     except Exception as e:
-        print(f"Σφάλμα κατά την επεξεργασία εικόνων για το ID {id_}: {e}")
+        print(f"false id {id_}: {e}")
 
-# Μετατροπή σε NumPy arrays
+#  NumPy arrays
 X = np.array(X)
 y = np.array(y)
 
-# Έλεγχος του σχήματος των δεδομένων
-print(f"Σχήμα χαρακτηριστικών (X): {X.shape}")
-print(f"Σχήμα ετικετών (y): {y.shape}")
+# checking feat.
+print(f"shape of feat (X): {X.shape}")
+print(f"shape of labels (y): {y.shape}")
 
-# Κανονικοποίηση χαρακτηριστικών και εκπαίδευση μοντέλου
+# Convert features to DataFrame and print
+X_df = pd.DataFrame(X, columns=[
+    'T1_Mean', 'T1_Std', 'T1_Kurtosis', 'T1_Skewness',
+    'T2_Mean', 'T2_Std', 'T2_Kurtosis', 'T2_Skewness',
+    'T1_Contrast', 'T1_Dissimilarity', 'T1_Homogeneity', 'T1_Energy', 'T1_Correlation',
+    'T2_Contrast', 'T2_Dissimilarity', 'T2_Homogeneity', 'T2_Energy', 'T2_Correlation'
+])
+print(X_df)
+
+# normalize
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Διαχωρισμός δεδομένων σε εκπαίδευση και δοκιμή
+#train test 70-30
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
-# Λίστα μοντέλων για δοκιμή
+#models
 models = {
     "Random Forest": RandomForestClassifier(random_state=42),
     "SVM": SVC(probability=True, random_state=42),
@@ -143,27 +216,32 @@ models = {
     "Decision Tree": DecisionTreeClassifier(random_state=42)
 }
 
-# Αξιολόγηση μοντέλων
+# initialize 
 best_model = None
 best_accuracy = 0
 
 for model_name, model in models.items():
     print(f"\n=== {model_name} ===")
     
+    start_time = time.time()
+    
     # Cross-validation
     cv_scores = cross_val_score(model, X_train, y_train, cv=5)
     mean_cv_score = cv_scores.mean()
     
-    # Εκπαίδευση του μοντέλου
+    # training
     model.fit(X_train, y_train)
     
-    # Πρόβλεψη στο σετ δοκιμής
+    # predictions on test set
     y_pred = model.predict(X_test)
     
-    # Υπολογισμός ακρίβειας
+    # accuracy computing
     accuracy = model.score(X_test, y_test)
     
-    # Αναφορά απόδοσης
+    end_time = time.time()
+    print(f"Computation time for {model_name}: {end_time - start_time} seconds")
+    
+    # Prints
     print(f"Cross-Validation Accuracy: {mean_cv_score:.4f}")
     print(f"Test Accuracy: {accuracy:.4f}")
     print("\nClassification Report:")
@@ -177,39 +255,37 @@ for model_name, model in models.items():
     plt.ylabel("True")
     plt.show()
     
-    # Διατήρηση του καλύτερου μοντέλου
+    # best accuracy
     if accuracy > best_accuracy:
         best_model = model
         best_accuracy = accuracy
 
-print(f"Το καλύτερο μοντέλο είναι: {type(best_model).__name__} με ακρίβεια: {best_accuracy:.4f}")
+print(f"Best model is: {type(best_model).__name__} with accuracy: {best_accuracy:.4f}")
 
-# Ορισμός του φακέλου εξόδου για αποθήκευση των γραφημάτων
-output_dir = r"C:\Users\zenia\OneDrive\Υπολογιστής\8ο_9o εξ\Συστηματα Υπ. Αποφ. Εργασια\output"
+
+output_dir = r" your path "
 os.makedirs(output_dir, exist_ok=True)
 
-# πλοταρισμα χαρακτηριστικων
-# Ιστογράμματα για Κατανομή Ετικετών (y)
+
 plt.figure(figsize=(8, 5))
 sns.countplot(x=y, palette="pastel")
-plt.title("Κατανομή Ετικετών (Benign vs Cancer)")
-plt.xlabel("Κατηγορία")
-plt.ylabel("Πλήθος")
+plt.title("labeling classifying "category")
+plt.ylabel("sum")
 plt.xticks(ticks=[0, 1], labels=["Benign", "Cancer"])
 label_histogram_path = os.path.join(output_dir, "label_distribution.png")
 plt.savefig(label_histogram_path)
 plt.show()
 
-# Ιστογράμματα για Κατανομή Χαρακτηριστικών
-num_features_to_plot = 5  # Αριθμός χαρακτηριστικών που θα οπτικοποιηθούν
+#histograms for feautures
+num_features_to_plot = 5  
 plt.figure(figsize=(16, 8))
 
 for i in range(num_features_to_plot):
     plt.subplot(1, num_features_to_plot, i + 1)
     sns.histplot(X_scaled[:, i], kde=True, bins=30, color="blue")
-    plt.title(f"Χαρακτηριστικό {i+1} Κατανομή")
-    plt.xlabel("Τιμή")
-    plt.ylabel("Συχνότητα")
+    plt.title(f"fearure {i+1} distribution")
+    plt.xlabel("value")
+    plt.ylabel("frequency")
     plt.tight_layout()
 
 feature_histogram_path = os.path.join(output_dir, "feature_distributions.png")
