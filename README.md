@@ -12,11 +12,28 @@ The system utilizes machine learning models to analyze image features and accura
 Breast tumors are classified into benign and malignant types based on their growth characteristics and potential to spread. Benign tumors are 
 noncancerous, usually grow slowly, and do not spread to other parts of the body. They can often be removed through surgery, with a low risk of recurrence. On the other hand, malignant tumors are cancerous, grow rapidly, and could invade surrounding tissues and spread (metastasize) to other organs. Malignant breast tumors require more aggressive treatment, such as surgery, chemotherapy, or radiation, and are associated with a higher risk of recurrence and spread. Early detection through screening is crucial for improving outcomes.
 
+#  MRI
+
+
+MRI is based on the magnetization properties of atomic nuclei. A 
+powerful, uniform, external magnetic field is employed to align 
+the protons that are normally randomly oriented within the water 
+nuclei of the tissue being examined. So, mentioning T1 the time 
+constant which determines the rate at which excited protons return 
+to equilibrium. It is a measure of the time taken for spinning 
+protons to realign with the external magnetic field According to 
+T2 - transverse relaxation time- is the time constant which 
+determines the rate at which excited protons reach equilibrium or 
+go out of phase with each other. It is a measure of the time taken 
+for spinning protons to lose phase coherence among the nuclei 
+spinning perpendicular to the main field
+
 # Data Preprocessing
 
 
 The MRI The images undergo automatic segmentation using thresholding and morphological operations to isolate relevant features. The segmented images are then combined into 1D feature vectors, which are stored alongside their respective tumor labels (e.g., "Benign" or "Cancer").
 The features are normalized using a standard scaler to ensure consistency in the data for machine learning models. The dataset is split into training and test sets, allowing for model training and evaluation. Several machine learning models, including Random Forest, SVM, KNN, Logistic Regression, and Decision Trees, are trained and evaluated through cross-validation. Model performance is assessed using accuracy scores, classification reports, and confusion matrices.
+
 
 
 # Model Selection
