@@ -1,6 +1,11 @@
 # Data Source
 
-All medical data (images) was provided from archive of MEDISP LAB , Biomedical Engineering Department at University of West Attica.
+The dataset used for this project consists of MRI images obtained 
+from the MEDISP Laboratory at the University of West Attica. 
+Each image was preprocessed, and relevant features were 
+extracted to feed into the machine learning models. The images 
+were labeled as either benign or malignant based on expert 
+annotations.
 
 # Data Processing
 
