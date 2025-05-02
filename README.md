@@ -1,6 +1,6 @@
 # DSS for discrimination of benign from malignant cases.
 
-Part of university project for decision support systems lesson.
+Part of university project for Decision Support Systems lesson.
 
 This project aims to develop a Decision Support System (DSS) that assists in the classification of medical imaging data (specifically MRI images) into benign and malignant categories.
 The system utilizes machine learning models to analyze image features and accurately predict whether a given case is benign or malignant.
